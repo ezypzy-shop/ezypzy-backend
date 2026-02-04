@@ -3,10 +3,10 @@ import sql from "../../utils/sql";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { businessId: string } }
+  context: { params: Promise<{ businessId: string }> }
 ) {
   try {
-    const { businessId } = params;
+    const { businessId } = await context.params;
 
     // Fetch business details
     const business = await sql`
