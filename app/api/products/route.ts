@@ -5,10 +5,10 @@ import sql from '../utils/sql';
 async function getUnsplashImage(query: string): Promise<string> {
   try {
     const response = await fetch(
-      'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1`,
       {
         headers: {
-          'Authorization': 'Client-ID hcOjihGFR6De_cmou_TR-hny7JVkaEIzdiPkdSe91Ws'
+          'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
         }
       }
     );
