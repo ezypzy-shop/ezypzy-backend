@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
           COALESCE(o.customer_email, u.email) as customer_email,
           COALESCE(o.customer_phone, u.phone) as customer_phone
         FROM orders o
-        LEFT JOIN businesses b ON o.business_id = b.id
-        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN businesses b ON o.business_id::integer = b.id
+        LEFT JOIN users u ON o.user_id::integer = u.id
         WHERE o.order_number = ${orderNumber}
       `;
 
@@ -55,7 +55,6 @@ export async function GET(request: NextRequest) {
 
     // If orderId is provided, fetch single order with all details
     if (orderIdParam) {
-      // ✅ FIXED: Parse orderId to integer
       const orderId = parseInt(orderIdParam, 10);
       
       if (isNaN(orderId)) {
@@ -74,8 +73,8 @@ export async function GET(request: NextRequest) {
           COALESCE(o.customer_email, u.email) as customer_email,
           COALESCE(o.customer_phone, u.phone) as customer_phone
         FROM orders o
-        LEFT JOIN businesses b ON o.business_id = b.id
-        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN businesses b ON o.business_id::integer = b.id
+        LEFT JOIN users u ON o.user_id::integer = u.id
         WHERE o.id = ${orderId}
       `;
 
@@ -94,7 +93,6 @@ export async function GET(request: NextRequest) {
 
     // Fetch orders for a specific user
     if (userId) {
-      // ✅ FIXED: Parse userId to integer
       const userIdInt = parseInt(userId, 10);
       
       if (isNaN(userIdInt)) {
@@ -110,7 +108,7 @@ export async function GET(request: NextRequest) {
           b.name as business_name,
           b.logo_url as business_logo
         FROM orders o
-        LEFT JOIN businesses b ON o.business_id = b.id
+        LEFT JOIN businesses b ON o.business_id::integer = b.id
         WHERE o.user_id = ${userIdInt}
         ORDER BY o.created_at DESC
       `;
@@ -125,7 +123,6 @@ export async function GET(request: NextRequest) {
     if (businessId) {
       console.log('[GET /api/orders] Fetching orders for businessId:', businessId);
       
-      // ✅ Already correct - already parsing to int
       const businessIdInt = parseInt(businessId, 10);
       
       if (isNaN(businessIdInt)) {
@@ -294,7 +291,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // ✅ Already correct - already converting to number
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
     
     if (isNaN(numericId)) {
