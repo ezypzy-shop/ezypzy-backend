@@ -25,44 +25,6 @@ async function getUnsplashImage(query: string): Promise<string> {
   }
 }
 
-// Helper function to ensure products have images
-async function ensureProductImages(products: any[]) {
-  const updatedProducts = [];
-  
-  for (const product of products) {
-    // Check if product is missing image
-    if (!product.image_url) {
-      try {
-        // Generate search query from name and description
-        const searchQuery = product.description 
-          ? `${product.name} ${product.description}`.substring(0, 100)
-          : product.name;
-        
-        const autoImage = await getUnsplashImage(searchQuery);
-        
-        // Update the product in database
-        const updated = await sql`
-          UPDATE products
-          SET
-            image_url = ${autoImage},
-            updated_at = NOW()
-          WHERE id = ${product.id}
-          RETURNING *
-        `;
-        
-        updatedProducts.push(updated[0]);
-      } catch (error) {
-        console.error(`Error updating image for product ${product.id}:`, error);
-        updatedProducts.push(product);
-      }
-    } else {
-      updatedProducts.push(product);
-    }
-  }
-  
-  return updatedProducts;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -89,11 +51,9 @@ export async function GET(request: NextRequest) {
         );
       }
       
-      const fixedProducts = await ensureProductImages(products);
-      
       return NextResponse.json({ 
         success: true, 
-        product: fixedProducts[0]
+        product: products[0]
       });
     }
 
@@ -111,11 +71,9 @@ export async function GET(request: NextRequest) {
         ORDER BY p.created_at DESC
       `;
       
-      const fixedProducts = await ensureProductImages(products);
-      
       return NextResponse.json({ 
         success: true, 
-        products: fixedProducts || [] 
+        products: products || [] 
       });
     }
 
@@ -131,11 +89,9 @@ export async function GET(request: NextRequest) {
       ORDER BY p.created_at DESC
     `;
 
-    const fixedProducts = await ensureProductImages(products);
-
     return NextResponse.json({ 
       success: true, 
-      products: fixedProducts || [] 
+      products: products || [] 
     });
   } catch (error: any) {
     console.error('Error fetching products:', error);
