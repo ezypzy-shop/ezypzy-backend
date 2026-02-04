@@ -8,7 +8,7 @@ function normalizeOrder(order: any) {
     ...order,
     subtotal: parseFloat(order.subtotal) || 0,
     shipping_fee: parseFloat(order.shipping_fee) || 0,
-    delivery_fee: parseFloat(order.shipping_fee) || 0, // Map shipping_fee to delivery_fee for frontend compatibility
+    delivery_fee: parseFloat(order.shipping_fee) || 0,
     total_amount: parseFloat(order.total_amount) || 0,
     discount_amount: parseFloat(order.discount_amount) || 0,
   };
@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const businessId = searchParams.get('businessId');
-    const orderId = searchParams.get('orderId') || searchParams.get('id'); // Support both orderId and id
+    const orderIdParam = searchParams.get('orderId') || searchParams.get('id');
     const orderNumber = searchParams.get('order_number');
 
-    console.log('[GET /api/orders] Query params:', { userId, businessId, orderId, orderNumber });
+    console.log('[GET /api/orders] Query params:', { userId, businessId, orderIdParam, orderNumber });
 
     // If order_number is provided, fetch single order by order_number
     if (orderNumber) {
@@ -54,7 +54,17 @@ export async function GET(request: NextRequest) {
     }
 
     // If orderId is provided, fetch single order with all details
-    if (orderId) {
+    if (orderIdParam) {
+      // ✅ FIXED: Parse orderId to integer
+      const orderId = parseInt(orderIdParam, 10);
+      
+      if (isNaN(orderId)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid order ID' },
+          { status: 400 }
+        );
+      }
+
       const result = await sql`
         SELECT 
           o.*,
@@ -84,6 +94,16 @@ export async function GET(request: NextRequest) {
 
     // Fetch orders for a specific user
     if (userId) {
+      // ✅ FIXED: Parse userId to integer
+      const userIdInt = parseInt(userId, 10);
+      
+      if (isNaN(userIdInt)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid user ID' },
+          { status: 400 }
+        );
+      }
+
       const orders = await sql`
         SELECT 
           o.*,
@@ -91,7 +111,7 @@ export async function GET(request: NextRequest) {
           b.logo_url as business_logo
         FROM orders o
         LEFT JOIN businesses b ON o.business_id = b.id
-        WHERE o.user_id = ${userId}
+        WHERE o.user_id = ${userIdInt}
         ORDER BY o.created_at DESC
       `;
 
@@ -101,16 +121,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch orders for a specific business (includes both logged-in and guest orders)
-    // OPTIMIZED: Simpler query without unnecessary joins for business orders list
+    // Fetch orders for a specific business
     if (businessId) {
       console.log('[GET /api/orders] Fetching orders for businessId:', businessId);
       
+      // ✅ Already correct - already parsing to int
+      const businessIdInt = parseInt(businessId, 10);
+      
+      if (isNaN(businessIdInt)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid business ID' },
+          { status: 400 }
+        );
+      }
+
       const orders = await sql`
         SELECT 
           o.*
         FROM orders o
-        WHERE o.business_id = ${parseInt(businessId)}
+        WHERE o.business_id = ${businessIdInt}
         ORDER BY o.created_at DESC
       `;
 
@@ -222,7 +251,6 @@ export async function POST(request: NextRequest) {
         console.log(`✅ Email sent to ${customer_email} for order ${order_number}`);
       } catch (emailError) {
         console.error('❌ Failed to send order confirmation email:', emailError);
-        // Don't fail the order creation if email fails
       }
     }
 
@@ -246,7 +274,7 @@ export async function PUT(request: NextRequest) {
     
     const { orderId, order_id, status, tracking_number } = body;
     
-    // Support both orderId and order_id for compatibility
+    // Support both orderId and order_id
     const id = orderId || order_id;
     console.log('[PUT /api/orders] Order ID:', id, 'Status:', status, 'Tracking:', tracking_number);
 
@@ -266,8 +294,15 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Convert id to number if it's a string
+    // ✅ Already correct - already converting to number
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    
+    if (isNaN(numericId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid order ID' },
+        { status: 400 }
+      );
+    }
     
     console.log('[PUT /api/orders] Updating order with numeric ID:', numericId);
 
