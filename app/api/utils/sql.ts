@@ -12,8 +12,6 @@ NullishQueryFunction.transaction = () => {
   );
 };
 
-const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL, {
-  fetchConnectionCache: true,
-}) : NullishQueryFunction;
+const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : NullishQueryFunction;
 
 export default sql;
