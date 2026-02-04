@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Promotional code not found' },
         { status: 404 }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      code: result.rows[0],
+      code: result[0],
     });
   } catch (error: any) {
     console.error('Error marking promotional code as used:', error);
