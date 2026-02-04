@@ -89,7 +89,10 @@ export async function GET(request: NextRequest) {
         SELECT 
           o.*,
           b.name as business_name,
-          b.logo_url as business_logo
+          b.logo_url as business_logo,
+          jsonb_array_length(o.items::jsonb) as items_count,
+          o.items::jsonb->0->>'name' as first_item_name,
+          o.items::jsonb->0->>'image' as first_item_image
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
         WHERE o.user_id = ${userId}
