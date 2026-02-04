@@ -24,14 +24,14 @@ export async function POST(request: NextRequest) {
       AND (pc.valid_until IS NULL OR pc.valid_until >= NOW())
     `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired promotional code' },
         { status: 404 }
       );
     }
 
-    const promoCode = result.rows[0];
+    const promoCode = result[0];
 
     // Check usage limit
     if (promoCode.usage_limit && promoCode.used_count >= promoCode.usage_limit) {
