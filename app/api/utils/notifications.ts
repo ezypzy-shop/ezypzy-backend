@@ -26,12 +26,12 @@ export async function sendPushToUser(
       SELECT push_token FROM users WHERE id = ${userId}
     `;
 
-    if (result.rows.length === 0 || !result.rows[0].push_token) {
+    if (result.length === 0 || !result[0].push_token) {
       console.warn(`⚠️ No push token found for user ${userId}`);
       return { success: false, message: 'No push token found' };
     }
 
-    const pushToken = result.rows[0].push_token;
+    const pushToken = result[0].push_token;
 
     // Send push notification via Expo
     const message: PushMessage = {
@@ -81,7 +81,7 @@ export async function sendPushToMultipleUsers(
       SELECT push_token FROM users WHERE id = ANY(${userIds})
     `;
 
-    const pushTokens = result.rows
+    const pushTokens = result
       .map(row => row.push_token)
       .filter(token => token); // Remove null/undefined tokens
 
