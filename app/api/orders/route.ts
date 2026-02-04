@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           COALESCE(o.customer_phone, u.phone) as customer_phone
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
-        LEFT JOIN users u ON o.user_id::integer = u.id
+        LEFT JOIN users u ON o.user_id = u.id
         WHERE o.order_number = ${orderNumber}
       `;
 
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
           COALESCE(o.customer_phone, u.phone) as customer_phone
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
-        LEFT JOIN users u ON o.user_id::integer = u.id
+        LEFT JOIN users u ON o.user_id = u.id
         WHERE o.id = ${orderId}
       `;
 
@@ -91,17 +91,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch orders for a specific user
+    // Fetch orders for a specific user (supports Firebase UID strings)
     if (userId) {
-      const userIdInt = parseInt(userId, 10);
-      
-      if (isNaN(userIdInt)) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid user ID' },
-          { status: 400 }
-        );
-      }
-
       const orders = await sql`
         SELECT 
           o.*,
@@ -109,7 +100,7 @@ export async function GET(request: NextRequest) {
           b.logo_url as business_logo
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
-        WHERE o.user_id = ${userIdInt}
+        WHERE o.user_id = ${userId}
         ORDER BY o.created_at DESC
       `;
 
