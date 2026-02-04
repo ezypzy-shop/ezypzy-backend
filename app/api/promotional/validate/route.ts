@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         WHERE user_id = ${userId}
         AND discount_code = ${code}
       `;
-      const userUsageCount = parseInt(userUsageResult.[0]?.user_usage_count || '0');
+      const userUsageCount = parseInt(userUsageResult[0]?.user_usage_count || '0');
       
       if (userUsageCount >= promoCode.max_uses_per_user) {
         return NextResponse.json(
