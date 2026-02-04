@@ -30,13 +30,9 @@ export async function GET(request: NextRequest) {
         SELECT 
           o.*,
           b.name as business_name,
-          b.owner_id as business_user_id,
-          COALESCE(o.customer_name, u.name) as customer_name,
-          COALESCE(o.customer_email, u.email) as customer_email,
-          COALESCE(o.customer_phone, u.phone) as customer_phone
+          b.owner_id as business_user_id
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
-        LEFT JOIN users u ON o.user_id = u.id
         WHERE o.order_number = ${orderNumber}
       `;
 
@@ -68,13 +64,9 @@ export async function GET(request: NextRequest) {
         SELECT 
           o.*,
           b.name as business_name,
-          b.owner_id as business_user_id,
-          COALESCE(o.customer_name, u.name) as customer_name,
-          COALESCE(o.customer_email, u.email) as customer_email,
-          COALESCE(o.customer_phone, u.phone) as customer_phone
+          b.owner_id as business_user_id
         FROM orders o
         LEFT JOIN businesses b ON o.business_id::integer = b.id
-        LEFT JOIN users u ON o.user_id = u.id
         WHERE o.id = ${orderId}
       `;
 
