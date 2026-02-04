@@ -28,11 +28,11 @@ export async function POST(request: NextRequest) {
         GROUP BY orders.id
       `;
 
-      if (orderResult.rows.length === 0) {
+      if (orderResult.length === 0) {
         return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
       }
 
-      const order = orderResult.rows[0];
+      const order = orderResult[0];
       const items = order.items || [];
 
       // Calculate subtotal
