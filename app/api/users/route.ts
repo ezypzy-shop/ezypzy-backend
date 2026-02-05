@@ -18,14 +18,14 @@ export async function GET(request: NextRequest) {
     let result;
     if (firebase_uid) {
       result = await sql`
-        SELECT id, email, name, phone, address, city, state, postal_code, type, is_business_user, firebase_uid, created_at
+        SELECT id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
         FROM users
         WHERE firebase_uid = ${firebase_uid}
         LIMIT 1
       `;
     } else {
       result = await sql`
-        SELECT id, email, name, phone, address, city, state, postal_code, type, is_business_user, firebase_uid, created_at
+        SELECT id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
         FROM users
         WHERE email = ${email}
         LIMIT 1
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, name, phone, firebase_uid, is_business_user } = body;
+    const { email, name, phone, firebase_uid, is_business_user, photo_url } = body;
 
     if (!email) {
       return NextResponse.json(
@@ -69,13 +69,13 @@ export async function POST(request: NextRequest) {
     let existingUser;
     if (firebase_uid) {
       existingUser = await sql`
-        SELECT id, email, name, firebase_uid, is_business_user FROM users 
+        SELECT id, email, name, phone, photo_url, firebase_uid, is_business_user FROM users 
         WHERE email = ${email} OR firebase_uid = ${firebase_uid}
         LIMIT 1
       `;
     } else {
       existingUser = await sql`
-        SELECT id, email, name, firebase_uid, is_business_user FROM users 
+        SELECT id, email, name, phone, photo_url, firebase_uid, is_business_user FROM users 
         WHERE email = ${email}
         LIMIT 1
       `;
@@ -91,17 +91,18 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const result = await sql`
-      INSERT INTO users (email, name, phone, firebase_uid, type, is_business_user, created_at)
+      INSERT INTO users (email, name, phone, photo_url, firebase_uid, type, is_business_user, created_at)
       VALUES (
         ${email},
         ${name || null},
         ${phone || null},
+        ${photo_url || null},
         ${firebase_uid || null},
         ${is_business_user ? 'business_owner' : 'customer'},
         ${is_business_user || false},
         NOW()
       )
-      RETURNING id, email, name, phone, firebase_uid, type, is_business_user, created_at
+      RETURNING id, email, name, phone, photo_url, firebase_uid, type, is_business_user, created_at
     `;
 
     return NextResponse.json({
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, firebase_uid, name, phone, address, city, state, postal_code } = body;
+    const { email, firebase_uid, name, phone, address, city, state, postal_code, photo_url } = body;
 
     if (!email && !firebase_uid) {
       return NextResponse.json(
@@ -141,9 +142,10 @@ export async function PUT(request: NextRequest) {
           address = COALESCE(${address}, address),
           city = COALESCE(${city}, city),
           state = COALESCE(${state}, state),
-          postal_code = COALESCE(${postal_code}, postal_code)
+          postal_code = COALESCE(${postal_code}, postal_code),
+          photo_url = COALESCE(${photo_url}, photo_url)
         WHERE firebase_uid = ${firebase_uid}
-        RETURNING id, email, name, phone, address, city, state, postal_code, type, is_business_user, firebase_uid, created_at
+        RETURNING id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
       `;
     } else {
       result = await sql`
@@ -154,9 +156,10 @@ export async function PUT(request: NextRequest) {
           address = COALESCE(${address}, address),
           city = COALESCE(${city}, city),
           state = COALESCE(${state}, state),
-          postal_code = COALESCE(${postal_code}, postal_code)
+          postal_code = COALESCE(${postal_code}, postal_code),
+          photo_url = COALESCE(${photo_url}, photo_url)
         WHERE email = ${email}
-        RETURNING id, email, name, phone, address, city, state, postal_code, type, is_business_user, firebase_uid, created_at
+        RETURNING id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
       `;
     }
 
