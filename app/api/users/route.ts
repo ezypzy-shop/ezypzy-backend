@@ -132,6 +132,46 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Build dynamic update object (only update fields that are provided and not empty)
+    const updates: string[] = [];
+    const updateValues: any[] = [];
+    
+    if (name !== undefined && name !== null) {
+      updates.push(`name = COALESCE($${updates.length + 1}, name)`);
+      updateValues.push(name);
+    }
+    if (phone !== undefined && phone !== null) {
+      updates.push(`phone = COALESCE($${updates.length + 1}, phone)`);
+      updateValues.push(phone);
+    }
+    if (address !== undefined) {
+      updates.push(`address = $${updates.length + 1}`);
+      updateValues.push(address || null);
+    }
+    if (city !== undefined) {
+      updates.push(`city = $${updates.length + 1}`);
+      updateValues.push(city || null);
+    }
+    if (state !== undefined) {
+      updates.push(`state = $${updates.length + 1}`);
+      updateValues.push(state || null);
+    }
+    if (postal_code !== undefined) {
+      updates.push(`postal_code = $${updates.length + 1}`);
+      updateValues.push(postal_code || null);
+    }
+    if (photo_url !== undefined && photo_url !== null && photo_url !== '') {
+      updates.push(`photo_url = $${updates.length + 1}`);
+      updateValues.push(photo_url);
+    }
+
+    if (updates.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No fields to update' },
+        { status: 400 }
+      );
+    }
+
     let result;
     if (firebase_uid) {
       result = await sql`
@@ -143,7 +183,7 @@ export async function PUT(request: NextRequest) {
           city = COALESCE(${city}, city),
           state = COALESCE(${state}, state),
           postal_code = COALESCE(${postal_code}, postal_code),
-          photo_url = COALESCE(${photo_url}, photo_url)
+          photo_url = COALESCE(${photo_url || null}, photo_url)
         WHERE firebase_uid = ${firebase_uid}
         RETURNING id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
       `;
@@ -157,7 +197,7 @@ export async function PUT(request: NextRequest) {
           city = COALESCE(${city}, city),
           state = COALESCE(${state}, state),
           postal_code = COALESCE(${postal_code}, postal_code),
-          photo_url = COALESCE(${photo_url}, photo_url)
+          photo_url = COALESCE(${photo_url || null}, photo_url)
         WHERE email = ${email}
         RETURNING id, email, name, phone, address, city, state, postal_code, photo_url, type, is_business_user, firebase_uid, created_at
       `;
