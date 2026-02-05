@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import sql from '../utils/sql';
 
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders });
+}
+
 // Helper function to get relevant image from Unsplash
 async function getUnsplashImage(query: string): Promise<string> {
   try {
@@ -47,14 +59,14 @@ export async function GET(request: NextRequest) {
       if (products.length === 0) {
         return NextResponse.json(
           { success: false, error: 'Product not found' },
-          { status: 404 }
+          { status: 404, headers: corsHeaders }
         );
       }
       
       return NextResponse.json({ 
         success: true, 
         product: products[0]
-      });
+      }, { headers: corsHeaders });
     }
 
     if (businessId) {
@@ -74,7 +86,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         products: products || [] 
-      });
+      }, { headers: corsHeaders });
     }
 
     // Fetch all products with business details
@@ -92,12 +104,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       products: products || [] 
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to fetch products' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -127,7 +139,7 @@ export async function POST(request: NextRequest) {
     if (!business_id || !name || !price || !category) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -169,12 +181,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       product: result[0] 
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error creating product:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create product' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -203,7 +215,7 @@ export async function PUT(request: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, error: 'Product ID is required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -233,19 +245,19 @@ export async function PUT(request: NextRequest) {
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Product not found' },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
     return NextResponse.json({ 
       success: true, 
       product: result[0] 
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error updating product:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to update product' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -258,7 +270,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, error: 'Product ID is required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -271,19 +283,19 @@ export async function DELETE(request: NextRequest) {
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Product not found' },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
     return NextResponse.json({ 
       success: true, 
       message: 'Product deleted successfully' 
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error deleting product:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to delete product' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
