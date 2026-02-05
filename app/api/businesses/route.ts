@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import sql from '@/app/api/utils/sql';
 
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -35,10 +47,10 @@ export async function GET(request: NextRequest) {
       rating: business.rating ? parseFloat(business.rating) : 4.5
     }));
 
-    return NextResponse.json({ success: true, businesses });
+    return NextResponse.json({ success: true, businesses }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error fetching businesses:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -71,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (!name || !owner_id) {
       return NextResponse.json(
         { success: false, error: 'Name and owner_id are required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -105,10 +117,10 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    return NextResponse.json({ success: true, business: result[0] });
+    return NextResponse.json({ success: true, business: result[0] }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error creating business:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -141,7 +153,7 @@ export async function PUT(request: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, error: 'Business ID is required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -179,13 +191,13 @@ export async function PUT(request: NextRequest) {
     if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Business not found' },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
-    return NextResponse.json({ success: true, business: result[0] });
+    return NextResponse.json({ success: true, business: result[0] }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error updating business:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
