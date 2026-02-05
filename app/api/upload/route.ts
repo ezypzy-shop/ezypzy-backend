@@ -10,6 +10,18 @@ const APPGEN_UPLOAD_URL = 'https://app-cdn.appgen.com/upload';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for required environment variables
+    const appId = process.env.APP_ID;
+    const uploadSecret = process.env.APP_UPLOAD_SECRET;
+
+    if (!appId || !uploadSecret) {
+      console.error('Missing required environment variables: APP_ID or APP_UPLOAD_SECRET');
+      return NextResponse.json(
+        { error: 'Server configuration error: Missing upload credentials' },
+        { status: 500 }
+      );
+    }
+
     const contentType = request.headers.get('content-type') || '';
 
     // Handle FormData uploads (files and React Native assets)
@@ -31,16 +43,17 @@ export async function POST(request: NextRequest) {
       const uploadResponse = await fetch(APPGEN_UPLOAD_URL, {
         method: 'POST',
         headers: {
-          'x-app-id': process.env.APP_ID || '',
-          'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+          'x-app-id': appId,
+          'x-upload-secret': uploadSecret,
         },
         body: uploadFormData,
       });
 
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
+        console.error('Upload service error:', errorText);
         return NextResponse.json(
-          { error: errorText || 'Upload failed' },
+          { error: 'Upload failed', details: errorText },
           { status: uploadResponse.status }
         );
       }
@@ -59,16 +72,17 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-app-id': process.env.APP_ID || '',
-            'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+            'x-app-id': appId,
+            'x-upload-secret': uploadSecret,
           },
           body: JSON.stringify({ url: body.url }),
         });
 
         if (!uploadResponse.ok) {
           const errorText = await uploadResponse.text();
+          console.error('Upload service error:', errorText);
           return NextResponse.json(
-            { error: errorText || 'Upload failed' },
+            { error: 'Upload failed', details: errorText },
             { status: uploadResponse.status }
           );
         }
@@ -83,8 +97,8 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-app-id': process.env.APP_ID || '',
-            'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+            'x-app-id': appId,
+            'x-upload-secret': uploadSecret,
           },
           body: JSON.stringify({
             base64: body.base64,
@@ -95,8 +109,9 @@ export async function POST(request: NextRequest) {
 
         if (!uploadResponse.ok) {
           const errorText = await uploadResponse.text();
+          console.error('Upload service error:', errorText);
           return NextResponse.json(
-            { error: errorText || 'Upload failed' },
+            { error: 'Upload failed', details: errorText },
             { status: uploadResponse.status }
           );
         }
@@ -126,8 +141,12 @@ export async function POST(request: NextRequest) {
 
 // Optional: Handle GET requests (for testing)
 export async function GET() {
+  const appId = process.env.APP_ID;
+  const uploadSecret = process.env.APP_UPLOAD_SECRET;
+
   return NextResponse.json({
     message: 'Upload endpoint is working. Use POST to upload files.',
+    configured: !!appId && !!uploadSecret,
     accepts: ['multipart/form-data', 'application/json'],
     methods: {
       file: 'POST with FormData containing a "file" field',
