@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
 
       const uploadResponse = await fetch(APPGEN_UPLOAD_URL, {
         method: 'POST',
+        headers: {
+          'x-app-id': process.env.APP_ID || '',
+          'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+        },
         body: uploadFormData,
       });
 
@@ -53,7 +57,11 @@ export async function POST(request: NextRequest) {
       if (body.url) {
         const uploadResponse = await fetch(APPGEN_UPLOAD_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-app-id': process.env.APP_ID || '',
+            'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+          },
           body: JSON.stringify({ url: body.url }),
         });
 
@@ -73,7 +81,11 @@ export async function POST(request: NextRequest) {
       if (body.base64) {
         const uploadResponse = await fetch(APPGEN_UPLOAD_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-app-id': process.env.APP_ID || '',
+            'x-upload-secret': process.env.APP_UPLOAD_SECRET || '',
+          },
           body: JSON.stringify({
             base64: body.base64,
             fileName: body.fileName || 'file',
